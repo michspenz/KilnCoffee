@@ -1,4 +1,4 @@
-# Kiln & Co. — an intentionally vulnerable coffee storefront
+# Kiln & Co. — A vulnerable coffee storefront
 
 A small e-commerce demo built to showcase both sides of a security engagement:
 breaking in as an attacker, and investigating as a defender — using the same
