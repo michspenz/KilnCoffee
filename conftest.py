@@ -1,3 +1,5 @@
+"""Pytest fixtures for the KilnCoffee Flask demo."""
+
 import os
 import sys
 
@@ -5,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import app as kiln_app  # noqa: E402
+import app as kiln_app  # pylint: disable=wrong-import-position
 
 
 @pytest.fixture
@@ -19,12 +21,17 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(kiln_app, "LOG_PATH", str(log_path))
 
     kiln_app.app.config["TESTING"] = True
-    kiln_app.app.config["SECURE_MODE"] = False  # default to vulnerable mode unless a test overrides it
+    kiln_app.app.config["SECURE_MODE"] = False
     kiln_app.init_db()
 
     with kiln_app.app.test_client() as test_client:
         yield test_client
 
 
-def login(client, username, password="coffee123"):
-    return client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
+def login(test_client, username, password="coffee123"):
+    """Log a test client in as the requested demo user."""
+    return test_client.post(
+        "/login",
+        data={"username": username, "password": password},
+        follow_redirects=True,
+    )

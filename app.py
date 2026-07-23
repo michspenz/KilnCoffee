@@ -1,11 +1,12 @@
+"""KilnCoffee Flask storefront demo with an intentional IDOR/BOLA flaw."""
 
-
-import sqlite3
-import time
 import json
 import os
-from flask import Flask, request, render_template, redirect, url_for, session, g, flash
-from werkzeug.security import generate_password_hash, check_password_hash
+import sqlite3
+import time
+
+from flask import Flask, flash, g, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.secret_key = "kiln-demo-not-secure"  # fine for a local demo only
@@ -20,6 +21,7 @@ LOG_PATH = os.path.join(BASE_DIR, "requests.log")
 # ---------------------------------------------------------------------------
 
 def get_db():
+    """Return the active SQLite database connection for the current request."""
     db = getattr(g, "_database", None)
     if db is None:
         db = g._database = sqlite3.connect(DB_PATH)
@@ -28,13 +30,15 @@ def get_db():
 
 
 @app.teardown_appcontext
-def close_db(exception):
+def close_db(_exception):
+    """Close the database connection after each request context tears down."""
     db = getattr(g, "_database", None)
     if db is not None:
         db.close()
 
 
 def ensure_product_columns(db):
+    """Ensure the products table includes the mood and roaster note columns."""
     columns = {row[1] for row in db.execute("PRAGMA table_info(products)").fetchall()}
 
     if "mood" not in columns:
@@ -54,19 +58,37 @@ def ensure_product_columns(db):
     }
 
     existing_roaster_notes = {
-        "Ember Reserve": "This one was built for people who like their coffee to say something before the first sip.",
-        "Meadow Light": "I roast this for the morning that needs a little more daylight.",
-        "Foundry Blend": "This is the roast I keep on the grinder when I'm trying to look busy.",
-        "Midnight Kiln": "The quiet one, for when the room has gone soft and the kettle feels like a ritual.",
-        "Solstice Decaf": "The one I make for people who want the ceremony without the buzzy part.",
+        "Ember Reserve": (
+            "This one was built for people who like their coffee to say "
+            "something before the first sip."
+        ),
+        "Meadow Light": (
+            "I roast this for the morning that needs a little more daylight."
+        ),
+        "Foundry Blend": (
+            "This is the roast I keep on the grinder when I'm trying to "
+            "look busy."
+        ),
+        "Midnight Kiln": (
+            "The quiet one, for when the room has gone soft and the kettle "
+            "feels like a ritual."
+        ),
+        "Solstice Decaf": (
+            "The one I make for people who want the ceremony without the "
+            "buzzy part."
+        ),
     }
 
     for name, mood in existing_moods.items():
-        db.execute("UPDATE products SET mood = ? WHERE name = ? AND (mood IS NULL OR mood = '')", (mood, name))
+        db.execute(
+            "UPDATE products SET mood = ? WHERE name = ? AND (mood IS NULL OR mood = '')",
+            (mood, name),
+        )
 
     for name, roaster_note in existing_roaster_notes.items():
         db.execute(
-            "UPDATE products SET roaster_note = ? WHERE name = ? AND (roaster_note IS NULL OR roaster_note = '')",
+            "UPDATE products SET roaster_note = ? WHERE name = ? "
+            "AND (roaster_note IS NULL OR roaster_note = '')",
             (roaster_note, name),
         )
 
@@ -74,6 +96,7 @@ def ensure_product_columns(db):
 
 
 def init_db():
+    """Initialize the SQLite database and seed it on first run."""
     fresh = not os.path.exists(DB_PATH)
     db = sqlite3.connect(DB_PATH)
     db.executescript(
@@ -131,6 +154,7 @@ def init_db():
 
 
 def seed(db):
+    """Seed the demo user, product, and order data for local use."""
     users = [
         ("sam", "coffee123", "Sam Whitfield", "sam@example.com"),
         ("alex", "coffee123", "Alex Rivera", "alex@example.com"),
@@ -142,25 +166,72 @@ def seed(db):
         )
 
     products = [
-        ("Ember Reserve", "Slow-roasted until it remembers the fire.", "Sumatra", "Dark", 4, 18.50,
-         "molasses, dark cocoa, cedar smoke", "#3F5D45", "Bold",
-         "This one was built for people who like their coffee to say something before the first sip."),
-        ("Meadow Light", "Bright, floral, wide awake.", "Ethiopia, Yirgacheffe", "Light", 1, 19.00,
-         "jasmine, peach, wild honey", "#C48A2F", "Wide Awake",
-         "I roast this for the morning that needs a little more daylight."),
-        ("Foundry Blend", "The one we drink while roasting the rest.", "House Blend", "Medium", 2, 16.00,
-         "toffee, walnut, orange peel", "#A65A2E", "Unbothered",
-         "This is the roast I keep on the grinder when I'm trying to look busy."),
-        ("Midnight Kiln", "Roasted past the point of politeness.", "Guatemala", "Extra Dark", 5, 17.50,
-         "bittersweet chocolate, roasted almond", "#2B1E14", "Cozy",
-         "The quiet one, for when the room has gone soft and the kettle feels like a ritual."),
-        ("Solstice Decaf", "All the ritual, none of the jitters.", "Colombia", "Medium", 2, 17.00,
-         "caramel, red apple, brown sugar", "#7A6A4F", "No Jitters",
-         "The one I make for people who want the ceremony without the buzzy part."),
+        (
+            "Ember Reserve",
+            "Slow-roasted until it remembers the fire.",
+            "Sumatra",
+            "Dark",
+            4,
+            18.50,
+            "molasses, dark cocoa, cedar smoke",
+            "#3F5D45",
+            "Bold",
+            "This one was built for people who like their coffee to say "
+            "something before the first sip.",
+        ),
+        (
+            "Meadow Light",
+            "Bright, floral, wide awake.",
+            "Ethiopia, Yirgacheffe",
+            "Light",
+            1,
+            19.00,
+            "jasmine, peach, wild honey",
+            "#C48A2F",
+            "Wide Awake",
+            "I roast this for the morning that needs a little more daylight.",
+        ),
+        (
+            "Foundry Blend",
+            "The one we drink while roasting the rest.",
+            "House Blend",
+            "Medium",
+            2,
+            16.00,
+            "toffee, walnut, orange peel",
+            "#A65A2E",
+            "Unbothered",
+            "This is the roast I keep on the grinder when I'm trying to look busy.",
+        ),
+        (
+            "Midnight Kiln",
+            "Roasted past the point of politeness.",
+            "Guatemala",
+            "Extra Dark",
+            5,
+            17.50,
+            "bittersweet chocolate, roasted almond",
+            "#2B1E14",
+            "Cozy",
+            "The quiet one, for when the room has gone soft and the kettle feels like a ritual.",
+        ),
+        (
+            "Solstice Decaf",
+            "All the ritual, none of the jitters.",
+            "Colombia",
+            "Medium",
+            2,
+            17.00,
+            "caramel, red apple, brown sugar",
+            "#7A6A4F",
+            "No Jitters",
+            "The one I make for people who want the ceremony without the buzzy part.",
+        ),
     ]
     for p in products:
         db.execute(
-            "INSERT INTO products (name, tagline, origin, roast_level, roast_score, price, notes, accent, mood, roaster_note) "
+            "INSERT INTO products (name, tagline, origin, roast_level, "
+            "roast_score, price, notes, accent, mood, roaster_note) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             p,
         )
@@ -168,15 +239,60 @@ def seed(db):
 
     # Seed orders so the IDOR has real neighboring data to "steal"
     orders = [
-        (1, 1, 2, 37.00, "Sam Whitfield", "14 Marlow Street, Lagos", "+234 801 555 0142", "4242", "Roasting", "2026-07-10 09:12:00"),
-        (2, 2, 1, 19.00, "Alex Rivera", "88 Rivergate Ave, Lagos", "+234 802 555 0198", "1881", "Shipped", "2026-07-11 14:03:00"),
-        (1, 3, 1, 16.00, "Sam Whitfield", "14 Marlow Street, Lagos", "+234 801 555 0142", "4242", "Delivered", "2026-07-05 08:44:00"),
-        (2, 4, 3, 52.50, "Alex Rivera", "88 Rivergate Ave, Lagos", "+234 802 555 0198", "1881", "Roasting", "2026-07-12 11:20:00"),
+        (
+            1,
+            1,
+            2,
+            37.00,
+            "Sam Whitfield",
+            "14 Marlow Street, Lagos",
+            "+234 801 555 0142",
+            "4242",
+            "Roasting",
+            "2026-07-10 09:12:00",
+        ),
+        (
+            2,
+            2,
+            1,
+            19.00,
+            "Alex Rivera",
+            "88 Rivergate Ave, Lagos",
+            "+234 802 555 0198",
+            "1881",
+            "Shipped",
+            "2026-07-11 14:03:00",
+        ),
+        (
+            1,
+            3,
+            1,
+            16.00,
+            "Sam Whitfield",
+            "14 Marlow Street, Lagos",
+            "+234 801 555 0142",
+            "4242",
+            "Delivered",
+            "2026-07-05 08:44:00",
+        ),
+        (
+            2,
+            4,
+            3,
+            52.50,
+            "Alex Rivera",
+            "88 Rivergate Ave, Lagos",
+            "+234 802 555 0198",
+            "1881",
+            "Roasting",
+            "2026-07-12 11:20:00",
+        ),
     ]
     for o in orders:
         db.execute(
-            "INSERT INTO orders (user_id, product_id, quantity, total, shipping_name, shipping_address, "
-            "phone, card_last4, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO orders (user_id, product_id, quantity, total, "
+            "shipping_name, shipping_address, phone, card_last4, status, "
+            "created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             o,
         )
     db.commit()
@@ -191,7 +307,10 @@ SENSITIVE_FIELDS = {"password", "confirm_password"}
 
 @app.before_request
 def log_request():
-    form_data = {k: v for k, v in request.form.to_dict().items() if k not in SENSITIVE_FIELDS}
+    """Write a JSON request log entry for every incoming request."""
+    form_data = {
+        k: v for k, v in request.form.to_dict().items() if k not in SENSITIVE_FIELDS
+    }
     entry = {
         "time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "ip": request.remote_addr,
@@ -202,11 +321,12 @@ def log_request():
         "session_username": session.get("username"),
         "form_data": form_data,
     }
-    with open(LOG_PATH, "a") as f:
-        f.write(json.dumps(entry) + "\n")
+    with open(LOG_PATH, "a", encoding="utf-8") as log_file:
+        log_file.write(json.dumps(entry) + "\n")
 
 
 def current_user():
+    """Return the currently logged-in user, if any."""
     if "user_id" not in session:
         return None
     db = get_db()
@@ -215,6 +335,7 @@ def current_user():
 
 @app.context_processor
 def inject_user():
+    """Expose the current user to all templates via the context processor."""
     return {"current_user": current_user()}
 
 
@@ -224,6 +345,7 @@ def inject_user():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """Create a new user account through the registration form."""
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
@@ -249,6 +371,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Authenticate a user and establish a session."""
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
@@ -266,12 +389,14 @@ def login():
 
 @app.route("/logout")
 def logout():
+    """Clear the current session and send the user back to the storefront."""
     session.clear()
     flash("You've been logged out.", "success")
     return redirect(url_for("index"))
 
 
 def require_login():
+    """Redirect unauthenticated users to the login page."""
     if "user_id" not in session:
         flash("Please log in first.", "error")
         return redirect(url_for("login"))
@@ -284,6 +409,7 @@ def require_login():
 
 @app.route("/")
 def index():
+    """Render the storefront homepage with all products."""
     db = get_db()
     products = db.execute("SELECT * FROM products ORDER BY id").fetchall()
     return render_template("index.html", products=products)
@@ -291,6 +417,7 @@ def index():
 
 @app.route("/product/<int:product_id>")
 def product_detail(product_id):
+    """Render the product detail page for the selected product."""
     db = get_db()
     product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
     if not product:
@@ -301,6 +428,7 @@ def product_detail(product_id):
 
 @app.route("/order/create", methods=["POST"])
 def order_create():
+    """Create a new order for the currently authenticated user."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -321,11 +449,20 @@ def order_create():
     total = round(product["price"] * quantity, 2)
 
     cur = db.execute(
-        "INSERT INTO orders (user_id, product_id, quantity, total, shipping_name, shipping_address, "
-        "phone, card_last4, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO orders (user_id, product_id, quantity, total, "
+        "shipping_name, shipping_address, phone, card_last4, status, "
+        "created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
-            session["user_id"], product_id, quantity, total, user["full_name"], shipping_address,
-            phone, card_last4, "Roasting", time.strftime("%Y-%m-%d %H:%M:%S"),
+            session["user_id"],
+            product_id,
+            quantity,
+            total,
+            user["full_name"],
+            shipping_address,
+            phone,
+            card_last4,
+            "Roasting",
+            time.strftime("%Y-%m-%d %H:%M:%S"),
         ),
     )
     db.commit()
@@ -336,6 +473,7 @@ def order_create():
 
 @app.route("/orders")
 def my_orders():
+    """Display the authenticated user's own order history."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -357,6 +495,7 @@ def my_orders():
 
 @app.route("/order/<int:order_id>")
 def order_detail(order_id):
+    """Render one order page for the selected order ID."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -384,6 +523,7 @@ def order_detail(order_id):
 
 @app.route("/order/<int:order_id>/update", methods=["POST"])
 def order_update(order_id):
+    """Update the shipping address on an order."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -400,6 +540,7 @@ def order_update(order_id):
 
 @app.route("/order/<int:order_id>/cancel", methods=["POST"])
 def order_cancel(order_id):
+    """Cancel a user's order."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -415,6 +556,7 @@ def order_cancel(order_id):
 
 @app.route("/account", methods=["GET"])
 def account():
+    """Render the authenticated user's account page."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -423,6 +565,7 @@ def account():
 
 @app.route("/account/report", methods=["POST"])
 def account_report():
+    """Persist a support report submitted from the account page."""
     redirect_resp = require_login()
     if redirect_resp:
         return redirect_resp
@@ -434,7 +577,10 @@ def account_report():
         (session["user_id"], message, time.strftime("%Y-%m-%d %H:%M:%S")),
     )
     db.commit()
-    flash("Thanks — our security team has been notified and will investigate.", "success")
+    flash(
+        "Thanks — our security team has been notified and will investigate.",
+        "success",
+    )
     return redirect(url_for("account"))
 
 
