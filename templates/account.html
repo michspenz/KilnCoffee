@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Account — Kiln & Co.{% endblock %}
+{% block content %}
+
+<div class="container" style="max-width:520px;">
+  <div class="section-title" style="margin-top:40px;">
+    <h2>Account</h2>
+  </div>
+
+  <div class="form-card" style="margin:0 0 20px;">
+    <span class="ticket-label">Name</span>
+    <p style="margin:2px 0 12px; font-weight:600;">{{ current_user['full_name'] }}</p>
+    <span class="ticket-label">Email</span>
+    <p style="margin:2px 0 12px; font-weight:600;">{{ current_user['email'] }}</p>
+    <span class="ticket-label">Username</span>
+    <p style="margin:2px 0; font-weight:600;">{{ current_user['username'] }}</p>
+  </div>
+
+  <div class="form-card">
+    <h1 style="font-size:19px;">Report a problem</h1>
+    <p class="form-sub">Noticed something odd with your order, or think your account was accessed by someone else? Let us know.</p>
+    <form method="post" action="{{ url_for('account_report') }}">
+      <label for="message">What happened?</label>
+      <textarea id="message" name="message" rows="4" required
+        placeholder="e.g. I saw an order I didn't place, or a shipping address I didn't set."></textarea>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Send report</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

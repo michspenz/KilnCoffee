@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Create account — Kiln & Co.{% endblock %}
+{% block content %}
+
+<div class="form-card">
+  <h1>Create an account</h1>
+  <p class="form-sub">Takes a minute. No card required until you order.</p>
+  <form method="post">
+    <label for="full_name">Full name</label>
+    <input type="text" id="full_name" name="full_name" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required>
+
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Create account</button>
+    </div>
+  </form>
+  <p class="form-hint" style="margin-top:16px;">Already have one? <a href="{{ url_for('login') }}">Log in</a>.</p>
+</div>
+
+{% endblock %}

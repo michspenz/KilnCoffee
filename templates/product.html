@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ product['name'] }} — Kiln & Co.{% endblock %}
+{% block content %}
+
+<div class="container" style="max-width:640px;">
+  <div style="margin:36px 0;">
+    <div class="product-swatch" style="height:120px; border-radius:4px; background:{{ product['accent'] }};">
+      {% if product['name'] == 'Ember Reserve' %}
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M35 80c4-15 12-22 22-26 9-4 16-10 20-18" />
+          <path d="M56 73c5-13 14-20 25-24 8-4 14-10 16-18" />
+          <path d="M78 83c5-12 12-18 21-22 8-4 13-8 16-15" />
+        </svg>
+      {% elif product['name'] == 'Meadow Light' %}
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M40 44c0 16 12 28 28 28 11 0 20-5 26-14" />
+          <path d="M48 56c16 2 28 14 28 29" />
+          <path d="M70 38c10 4 18 13 18 25" />
+        </svg>
+      {% elif product['name'] == 'Foundry Blend' %}
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M20 84L48 48l18 24 18-28 16 40" />
+          <path d="M30 84h60" />
+        </svg>
+      {% elif product['name'] == 'Midnight Kiln' %}
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M78 34c-12 0-22 10-22 22s10 22 22 22c8 0 15-4 19-10" />
+          <path d="M86 48c-5 0-10 3-13 7" />
+        </svg>
+      {% elif product['name'] == 'Solstice Decaf' %}
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M60 30c6 10 9 19 9 31s-3 21-9 31" />
+          <path d="M60 30c-9 4-17 13-17 26s8 22 17 26" />
+          <path d="M54 60h12" />
+        </svg>
+      {% endif %}
+    </div>
+    <span class="product-origin" style="display:block; margin-top:16px;">{{ product['origin'] }}</span>
+    <h1>{{ product['name'] }}</h1>
+    <p class="product-tagline" style="font-size:16px;">{{ product['tagline'] }}</p>
+
+    <div class="mood-pills">
+      <span class="mood-pill">{{ product['mood'] }}</span>
+    </div>
+
+    <div class="roast-scale" style="margin:14px 0;">
+      {% for i in range(1,6) %}
+        <span class="roast-dot {% if i <= product['roast_score'] %}filled{% endif %}" data-label="{% if i == 1 %}Light{% elif i == 2 or i == 3 %}Medium{% elif i == 4 %}Dark{% else %}Extra Dark{% endif %}"></span>
+      {% endfor %}
+      <span style="margin-left:8px; font-size:13px; color:var(--ink-soft);">{{ product['roast_level'] }} roast</span>
+    </div>
+
+    <div class="mood-pills">
+      <span class="mood-pill">Small batch</span>
+      <span class="mood-pill">{{ product['roast_level'] }} roast</span>
+    </div>
+
+    <div class="note-card">
+      <div class="note-header">
+        <span class="note-icon" aria-hidden="true">✦</span>
+        <span class="note-label">Roaster's notes</span>
+      </div>
+      <p class="note-copy">{{ product['notes'] }}</p>
+    </div>
+
+    <p style="color:var(--ink-soft);"><strong>Tasting notes:</strong> {{ product['notes'] }}</p>
+    <blockquote class="roaster-note">“{{ product['roaster_note'] }}”</blockquote>
+    <p class="price" style="font-size:22px;">${{ "%.2f"|format(product['price']) }} / bag</p>
+  </div>
+
+  {% if current_user %}
+  <div class="form-card" style="margin:0 0 50px;">
+    <h1>Order this roast</h1>
+    <p class="form-sub">Ships in a resealable kraft bag, roasted the day before dispatch.</p>
+    <form method="post" action="{{ url_for('order_create') }}">
+      <input type="hidden" name="product_id" value="{{ product['id'] }}">
+
+      <label for="quantity">Bags</label>
+      <input type="number" id="quantity" name="quantity" value="1" min="1" max="10" required>
+
+      <label for="shipping_address">Shipping address</label>
+      <textarea id="shipping_address" name="shipping_address" rows="2" required placeholder="Street, city, country"></textarea>
+
+      <div class="two-col">
+        <div>
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" name="phone" required placeholder="+234 800 000 0000">
+        </div>
+        <div>
+          <label for="card_last4">Card number</label>
+          <input type="text" id="card_last4" name="card_last4" required placeholder="4242 4242 4242 4242" maxlength="19">
+          <p class="form-hint">Demo only — nothing is actually charged. Only the last 4 digits are stored.</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Place order</button>
+      </div>
+    </form>
+  </div>
+  {% else %}
+  <div class="form-card" style="text-align:center;">
+    <p>You'll need an account to order this roast.</p>
+    <a class="btn btn-primary" href="{{ url_for('login') }}">Log in</a>
+    <a class="btn btn-outline" href="{{ url_for('register') }}">Create account</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

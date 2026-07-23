@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Log in — Kiln & Co.{% endblock %}
+{% block content %}
+
+<div class="form-card">
+  <h1>Log in</h1>
+  <p class="form-sub">Demo accounts: <strong>sam</strong> / <strong>alex</strong>, password <strong>coffee123</strong></p>
+  <form method="post">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Log in</button>
+    </div>
+  </form>
+  <p class="form-hint" style="margin-top:16px;">No account? <a href="{{ url_for('register') }}">Create one</a>.</p>
+</div>
+
+{% endblock %}

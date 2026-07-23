@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Kiln & Co. — Small-Batch Coffee{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div>
+    <span class="eyebrow">Roasted in small batches, Tuesdays and Fridays</span>
+    <h1>Coffee roasted like it owes you an explanation.</h1>
+    <p class="lede">Five beans, five moods. Every bag is roasted to order and shipped within 48 hours.
+      and every order gets its own ticket, stamped with a number, the moment you place it.</p>
+    <div class="hero-actions">
+      <a href="#shop" class="btn btn-primary">Shop the roast</a>
+      {% if not current_user %}
+        <a href="{{ url_for('register') }}" class="btn btn-outline">Create an account</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="ticket">
+    <span class="ticket-label">Today's Roast</span>
+    <div class="ticket-id">No. 04</div>
+    <div class="ticket-divider"></div>
+    <span class="ticket-label">Origin</span>
+    <div style="margin-bottom:10px; font-weight:600;">Guatemala, Huehuetenango</div>
+    <span class="ticket-label">Status</span>
+    <span class="ticket-status">In the kiln</span>
+  </div>
+</section>
+
+<div class="container">
+  <div class="section-title" id="shop">
+    <h2>The current lineup</h2>
+    <span>{{ products|length }} roasts available</span>
+  </div>
+
+  <div class="grid">
+    {% for p in products %}
+      <a class="product-card" href="{{ url_for('product_detail', product_id=p['id']) }}" style="color:inherit;">
+        <div class="product-swatch" style="background:{{ p['accent'] }};">
+          {% if p['name'] == 'Ember Reserve' %}
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <path d="M35 80c4-15 12-22 22-26 9-4 16-10 20-18" />
+              <path d="M56 73c5-13 14-20 25-24 8-4 14-10 16-18" />
+              <path d="M78 83c5-12 12-18 21-22 8-4 13-8 16-15" />
+            </svg>
+          {% elif p['name'] == 'Meadow Light' %}
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <path d="M40 44c0 16 12 28 28 28 11 0 20-5 26-14" />
+              <path d="M48 56c16 2 28 14 28 29" />
+              <path d="M70 38c10 4 18 13 18 25" />
+            </svg>
+          {% elif p['name'] == 'Foundry Blend' %}
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <path d="M20 84L48 48l18 24 18-28 16 40" />
+              <path d="M30 84h60" />
+            </svg>
+          {% elif p['name'] == 'Midnight Kiln' %}
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <path d="M78 34c-12 0-22 10-22 22s10 22 22 22c8 0 15-4 19-10" />
+              <path d="M86 48c-5 0-10 3-13 7" />
+            </svg>
+          {% elif p['name'] == 'Solstice Decaf' %}
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <path d="M60 30c6 10 9 19 9 31s-3 21-9 31" />
+              <path d="M60 30c-9 4-17 13-17 26s8 22 17 26" />
+              <path d="M54 60h12" />
+            </svg>
+          {% endif %}
+        </div>
+        <div class="product-body">
+          <span class="product-origin">{{ p['origin'] }}</span>
+          <h3>{{ p['name'] }}</h3>
+          <p class="product-tagline">{{ p['tagline'] }}</p>
+          <div class="mood-pills">
+            <span class="mood-pill">{{ p['mood'] }}</span>
+          </div>
+          <div class="roast-scale">
+            {% for i in range(1,6) %}
+              <span class="roast-dot {% if i <= p['roast_score'] %}filled{% endif %}" data-label="{% if i == 1 %}Light{% elif i == 2 or i == 3 %}Medium{% elif i == 4 %}Dark{% else %}Extra Dark{% endif %}"></span>
+            {% endfor %}
+          </div>
+          <div class="mood-pills">
+            <span class="mood-pill">Small batch</span>
+            <span class="mood-pill">{{ p['roast_level'] }} roast</span>
+          </div>
+          <div class="product-footer">
+            <span class="price">${{ "%.2f"|format(p['price']) }}</span>
+            <span style="font-size:13px; color:var(--ink-soft);">{{ p['roast_level'] }} roast</span>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

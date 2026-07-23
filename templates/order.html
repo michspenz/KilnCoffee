@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order['id'] }} — Kiln & Co.{% endblock %}
+{% block content %}
+
+<div class="order-page">
+  <div class="ticket" style="margin-top:30px;">
+    <span class="ticket-label">Order</span>
+    <div class="ticket-id ticket-id-stamp">#{{ "%04d"|format(order['id']) }}</div>
+
+    <span class="ticket-status
+      {% if order['status'] == 'Cancelled' %}cancelled{% elif order['status'] == 'Delivered' %}delivered{% endif %}"
+      style="margin-top:8px;">
+      {{ order['status'] }}
+    </span>
+
+    <div class="ticket-divider"></div>
+
+    <div class="detail-row"><span class="label">Item</span><span class="value">{{ order['product_name'] }} × {{ order['quantity'] }}</span></div>
+    <div class="detail-row"><span class="label">Total</span><span class="value">${{ "%.2f"|format(order['total']) }}</span></div>
+    <div class="detail-row"><span class="label">Placed</span><span class="value">{{ order['created_at'] }}</span></div>
+
+    <div class="ticket-divider"></div>
+
+    <div class="detail-row"><span class="label">Name</span><span class="value">{{ order['shipping_name'] }}</span></div>
+    <div class="detail-row"><span class="label">Address</span><span class="value">{{ order['shipping_address'] }}</span></div>
+    <div class="detail-row"><span class="label">Phone</span><span class="value">{{ order['phone'] }}</span></div>
+    <div class="detail-row"><span class="label">Card on file</span><span class="value">•••• {{ order['card_last4'] }}</span></div>
+
+    <div class="note-card" style="margin-top:18px;">
+      <div class="note-header">
+        <span class="note-icon" aria-hidden="true">✦</span>
+        <span class="note-label">Roaster's notes</span>
+      </div>
+      <p class="note-copy">Freshly packed with the same small-batch care as the roast itself — stamped, tracked, and tucked into your order ticket.</p>
+    </div>
+  </div>
+
+  <div class="order-actions">
+    <form method="get" action="{{ url_for('my_orders') }}">
+      <button class="btn btn-outline" type="submit">Back to my orders</button>
+    </form>
+  </div>
+
+  <div class="form-card">
+    <h1 style="font-size:19px;">Update shipping address</h1>
+    <form method="post" action="{{ url_for('order_update', order_id=order['id']) }}">
+      <label for="shipping_address">New address</label>
+      <textarea id="shipping_address" name="shipping_address" rows="2" required>{{ order['shipping_address'] }}</textarea>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-sm">Save address</button>
+      </div>
+    </form>
+
+    {% if order['status'] != 'Cancelled' %}
+    <form method="post" action="{{ url_for('order_cancel', order_id=order['id']) }}" style="margin-top:14px;">
+      <button type="submit" class="btn btn-danger btn-sm">Cancel this order</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

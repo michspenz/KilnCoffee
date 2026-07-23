@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Kiln & Co.{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark"></span> Kiln &amp; Co.
+      </a>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}">Shop</a>
+        {% if current_user %}
+          <a href="{{ url_for('my_orders') }}">My Orders</a>
+          <a href="{{ url_for('account') }}">Account</a>
+          <span class="nav-user">{{ current_user['full_name'] }}</span>
+          <a href="{{ url_for('logout') }}">Log out</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Log in</a>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">Create account</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash" aria-live="polite" aria-atomic="true">
+        {% for category, message in messages %}
+          <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var toastNodes = document.querySelectorAll('.flash-msg');
+      toastNodes.forEach(function (toast) {
+        window.setTimeout(function () {
+          toast.classList.add('flash-hidden');
+        }, 4000);
+      });
+    });
+  </script>
+
+  {% block content %}{% endblock %}
+
+  <footer class="footer">
+    Kiln &amp; Co. — a deliberately vulnerable demo storefront, built for security education.
+    Not a real coffee company. Not a real payment system.
+  </footer>
+</body>
+</html>
